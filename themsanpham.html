@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Thêm sản phẩm</title>
+</head>
+<body>
+  <h2>Admin – Thêm sản phẩm</h2>
+
+  <form id="addForm">
+    <label>
+      Tên sản phẩm:
+      <input type="text" id="name" required>
+    </label>
+    <br><br>
+    <label>
+      Giá (VNĐ):
+      <input type="number" id="price" required>
+    </label>
+    <br><br>
+    <button type="submit">Thêm</button>
+  </form>
+
+  <h3>Danh sách sản phẩm</h3>
+  <ul id="productList"></ul>
+
+  <script>
+    const products = [];
+    const form = document.getElementById("addForm");
+    const nameInput = document.getElementById("name");
+    const priceInput = document.getElementById("price");
+    const productList = document.getElementById("productList");
+    form.addEventListener("submit", function(e) {
+      e.preventDefault(); 
+      const name = nameInput.value.trim();
+      const price = Number(priceInput.value);
+      products.push({ name, price });
+      render();
+      form.reset();
+    });
+    function render() {
+      productList.innerHTML = "";
+      products.forEach((p, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i+1}. ${p.name} - ${p.price.toLocaleString()} VNĐ`;
+        productList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

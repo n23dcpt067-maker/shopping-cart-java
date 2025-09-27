@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Khách hàng – Tìm kiếm sản phẩm</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    h2 { margin: 0 0 12px; }
+    .row { display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 10px; }
+    input, select, button { padding: 8px; font-size: 14px; }
+    input[type="number"]{ width: 120px; }
+    .card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; margin:8px 0; }
+    .muted { color:#6b7280; font-size:12px; }
+    .empty { color:#6b7280; border:1px dashed #ddd; border-radius:10px; padding:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <h2>Khách hàng – Tìm kiếm sản phẩm</h2>
+
+  <div class="row">
+    <input id="q" placeholder="Nhập tên hoặc SKU…" />
+    <input id="min" type="number" min="0" step="1000" placeholder="Giá từ" />
+    <input id="max" type="number" min="0" step="1000" placeholder="Giá đến" />
+    <select id="sort">
+      <option value="name-asc">Sắp xếp: Tên A→Z</option>
+      <option value="price-asc">Giá ↑</option>
+      <option value="price-desc">Giá ↓</option>
+    </select>
+    <button id="clear" type="button">Xóa lọc</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const PRODUCTS = [
+      { sku:"SP001", name:"Áo thun cổ tròn", price:199000, category:"Áo" },
+      { sku:"SP002", name:"Quần jean xanh",  price:399000, category:"Quần" },
+      { sku:"SP003", name:"Mũ lưỡi trai",    price: 99000, category:"Phụ kiện" },
+      { sku:"SP004", name:"Áo sơ mi trắng",  price:259000, category:"Áo" },
+      { sku:"SP005", name:"Tất cổ thấp",     price: 39000, category:"Phụ kiện" }
+    ];
+
+    const $ = (s) => document.querySelector(s);
+    const fmt = (n) => Number(n).toLocaleString("vi-VN");
+
+    const qEl = $("#q"), minEl = $("#min"), maxEl = $("#max"), sortEl = $("#sort");
+    const clearBtn = $("#clear"), resultsEl = $("#results");
+
+    qEl.addEventListener("input", applySearch);
+    minEl.addEventListener("input", applySearch);
+    maxEl.addEventListener("input", applySearch);
+    sortEl.addEventListener("change", applySearch);
+    clearBtn.addEventListener("click", () => {
+      qEl.value = ""; minEl.value = ""; maxEl.value = ""; sortEl.value = "name-asc";
+      applySearch();
+    });
+
+    function applySearch() {
+      const q = qEl.value.trim().toLowerCase();
+      const min = minEl.value ? Number(minEl.value) : 0;
+      const max = maxEl.value ? Number(maxEl.value) : Number.MAX_SAFE_INTEGER;
+
+
+      let list = PRODUCTS.filter(p => {
+        const text = (p.name + " " + p.sku).toLowerCase();
+        const textOk = q ? text.includes(q) : true;
+        const priceOk = p.price >= min && p.price <= max;
+        return textOk && priceOk;
+      });
+
+
+      if (sortEl.value === "price-asc") list.sort((a,b)=>a.price-b.price);
+      else if (sortEl.value === "price-desc") list.sort((a,b)=>b.price-a.price);
+      else list.sort((a,b)=>a.name.localeCompare(b.name, "vi"));
+
+      render(list, q);
+    }
+
+    function render(list, q) {
+      if (!q && !min.value && !max.value) {
+        resultsEl.innerHTML = `<div class="empty">Nhập từ khóa hoặc khoảng giá để tìm sản phẩm.</div>`;
+        return;
+      }
+      if (list.length === 0) {
+        resultsEl.innerHTML = `<div class="empty">Không tìm thấy sản phẩm phù hợp.</div>`;
+        return;
+      }
+      resultsEl.innerHTML = list.map(p => `
+        <div class="card">
+          <div><strong>${p.name}</strong> <span class="muted">(${p.sku}) · ${p.category}</span></div>
+          <div><strong>${fmt(p.price)} đ</strong></div>
+          <!-- đây chỉ là tìm kiếm; các use case "Thêm vào giỏ" sẽ làm riêng -->
+        </div>
+      `).join("");
+    }
+
+    applySearch();
+  </script>
+</body>
+</html>
